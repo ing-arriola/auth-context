@@ -1,19 +1,22 @@
-import { useRef, useState, useEffect, useContext } from 'react';
-import AuthContext from '../context/AuthProvider';
+import { useRef, useState, useEffect,  } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../api/axios';
+import UseAuth from '../hooks/UseAuth';
 
 const LOGIN_URL = '/auth' // This the same route as the backend
 
 const Login = () => {
-    const { setAuth } = useContext(AuthContext)
+    const { setAuth } = UseAuth()
+    const navigate = useNavigate() ;
+    const location = useLocation () ;
+    const from = location.state?.from?.pathname || "/";
     const userRef = useRef();
     const errRef = useRef();
 
     const [user, setUser] = useState('');
     const [pwd, setPwd] = useState('');
     const [errMsg, setErrMsg] = useState('');
-    const [success, setSuccess] = useState(false);
-
+    console.log('from',from)
     useEffect(() => {
         userRef.current.focus();
     }, [])
@@ -35,7 +38,13 @@ const Login = () => {
             setAuth({user,pwd,roles,accessToken})
             setUser('');
             setPwd('');
-            setSuccess(true);
+            // setSuccess(true);
+            navigate(from,{replace:true}) // se utiliza para navegar a la ruta especificada en from después de que el usuario haya iniciado sesión
+            {/*
+                { replace: true } indica que se debe reemplazar la entrada actual en el historial de navegación en lugar de agregar una nueva. 
+                Esto significa que cuando el usuario navega de regreso desde la página de inicio de sesión, no verá la página de inicio 
+                de sesión en el historial de navegación, lo que evita que pueda regresar accidentalmente a la página de inicio de sesión
+                 con el botón "Atrás" del navegador */}
         } catch (err) {
             if (!err?.response) {
                 setErrMsg('No Server Response');
@@ -53,16 +62,7 @@ const Login = () => {
     }
 
     return (
-        <>
-            {success ? (
-                <section>
-                    <h1>You are logged in!</h1>
-                    <br />
-                    <p>
-                        <a href="#">Go to Home</a>
-                    </p>
-                </section>
-            ) : (
+       
                 <section>
                     <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
                     <h1>Sign In</h1>
@@ -96,8 +96,6 @@ const Login = () => {
                         </span>
                     </p>
                 </section>
-            )}
-        </>
     )
 }
 
